@@ -6,10 +6,16 @@ import (
 	"github.com/google/uuid"
 )
 
+type UserRequest struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
 // User представляет модель пользователя
 type User struct {
 	ID         uuid.UUID  `json:"id"`
 	Username   string     `json:"username"`
+	Password   string     `json:"password"`
 	Points     int        `json:"points"`
 	ReferrerID *uuid.UUID `json:"referrer_id,omitempty"`
 	CreatedAt  time.Time  `json:"created_at"`

@@ -1,34 +1,67 @@
 package logger
 
 import (
-	"sync"
+	"os"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
-type Logger struct {
-	*zap.Logger
-	mu sync.Mutex // Защита от копирования
-}
+// NewLogger создает и настраивает новый экземпляр логгера
+func NewLogger() (*zap.Logger, error) {
+	// Определение уровня логирования из переменной окружения или по умолчанию
+	logLevel := os.Getenv("LOG_LEVEL")
+	var level zapcore.Level
 
-// New создает новый экземпляр логгера
-func NewLogger() (*Logger, error) {
-	config := zap.NewDevelopmentConfig()
-	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	switch logLevel {
+	case "debug":
+		level = zapcore.DebugLevel
+	case "info":
+		level = zapcore.InfoLevel
+	case "warn":
+		level = zapcore.WarnLevel
+	case "error":
+		level = zapcore.ErrorLevel
+	default:
+		level = zapcore.InfoLevel // По умолчанию уровень Info
+	}
 
-	baseLogger, err := config.Build()
+	// Настройка конфигурации логгера
+	config := zap.Config{
+		Level:       zap.NewAtomicLevelAt(level),
+		Development: false,
+		Sampling: &zap.SamplingConfig{
+			Initial:    100,
+			Thereafter: 100,
+		},
+		Encoding: "json",
+		EncoderConfig: zapcore.EncoderConfig{
+			TimeKey:        "ts",
+			LevelKey:       "level",
+			NameKey:        "logger",
+			CallerKey:      "caller",
+			FunctionKey:    zapcore.OmitKey,
+			MessageKey:     "msg",
+			StacktraceKey:  "stacktrace",
+			LineEnding:     zapcore.DefaultLineEnding,
+			EncodeLevel:    zapcore.LowercaseLevelEncoder,
+			EncodeTime:     zapcore.ISO8601TimeEncoder,
+			EncodeDuration: zapcore.SecondsDurationEncoder,
+			EncodeCaller:   zapcore.ShortCallerEncoder,
+		},
+		OutputPaths:      []string{"stdout"},
+		ErrorOutputPaths: []string{"stderr"},
+	}
+
+	// Создание логгера
+	logger, err := config.Build(zap.AddCallerSkip(1))
 	if err != nil {
 		return nil, err
 	}
 
-	return &Logger{
-		Logger: baseLogger,
-		mu:     sync.Mutex{},
-	}, nil
-}
+	logger.Info("Logger initialized",
+		zap.String("level", level.String()),
+		zap.String("encoding", config.Encoding))
 
-// Nop возвращает no-op логгер
-func (l *Logger) Nop() *zap.Logger {
-	return zap.NewNop()
+	return logger, nil
 }

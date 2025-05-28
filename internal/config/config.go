@@ -16,6 +16,8 @@ type Config struct {
 type Storage struct {
 	User     string `yaml:"user" env-required:"true"`
 	Password string `yaml:"password" env-required:"true"`
+	Host     string `yaml:"host" env-required:"true"`
+	Port     string `yaml:"port" env-required:"true"`
 	DBName   string `yaml:"dbname" env-required:"true"`
 	Sslmode  string `yaml:"sslmode" env-default:"false"`
 }
@@ -46,14 +48,6 @@ func MustLoad() *Config {
 	if err != nil {
 		panic(err)
 	}
-	err = validateConfig(config)
-	if err != nil {
-		panic(err)
-	}
 
 	return config
-}
-func validateConfig(config *Config) error {
-
-	return nil
 }

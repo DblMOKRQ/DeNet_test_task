@@ -1,0 +1,13 @@
+storage:
+  user: "postgres"
+  password: "123"
+  dbname: "task"
+  sslmode: "disable"
+
+rest:
+  host: "localhost"
+  port: "8080"
+
+jwt:
+  secretkey: "secret"
+  tokenduration: "1h"
